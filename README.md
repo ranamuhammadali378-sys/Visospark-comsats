@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚡ Visospark AI Prompt Engineering Contest Portal
+### COMSATS University Islamabad • Vehari Campus
 
-## Getting Started
+An institutional, real-time web portal engineered for the **Visospark AI Video Prompt Engineering Competition** hosted at **COMSATS University Islamabad (Vehari Campus)**.
 
-First, run the development server:
+The system facilitates secured student registration with unique identifier verification, dynamic server-synchronized test windows, live submission tracking, instructor resource dispatch, and an automated grading and leaderboard pipeline.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🏛️ Academic & Mentorship Hierarchy
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Lead Developer:** **Rana Muhammad Ali** (Department of Software Engineering, CUI Vehari)
+- **Project Mentorship & Supervision:** **Sir MS Abdullah** (COMSATS University Islamabad, Vehari Campus)
+- **Lead Evaluator & Administrator:** **Dr. Waseem Akram** (COMSATS University Islamabad, Vehari Campus)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📸 System Architecture & Visual Walkthrough
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Institutional Landing Portal (`/`)
+![Home Screen](./screenshots/Home_screen.png)
+> **Description:** The entry landing interface displaying official COMSATS University Islamabad (Vehari Campus) circular emblem, academic attributions for **Sir MS Abdullah** and **Dr. Waseem Akram**, and responsive navigation gateways for applicant registration, approved student sign-in, and administrative access.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. Candidate Registration (`/register`)
+![Register Screen](./screenshots/Register_screen.png)
+> **Description:** A secured student intake interface requiring Full Name, unique Institutional Registration Number (e.g., `FA21-BCS-045`), and encrypted authentication credentials. Strictly enforces unique student records in PostgreSQL to eliminate duplicate examination entries.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Student Authentication Gate (`/login`)
+![Login Screen](./screenshots/Login_screen.png)
+> **Description:** Verified session-entry point for participants. Authenticates against the Supabase identity ledger and verifies whether Dr. Waseem Akram has granted approval before routing candidates directly into the secure contest room (`/contest`).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+### 4. Admin Gatekeeper Security (`/admin`)
+![Admin Authentication Gate](./screenshots/Admin_authentication_popup_screen.png)
+> **Description:** Protected security layer preventing unauthorized intrusion into evaluator controls. Restricts operational parameters, registration approvals, and grading rights behind Dr. Waseem Akram's authorized key verification (`Dr_404.`).
+
+---
+
+### 5. Evaluator Dashboard & Dynamic Timer Hub (`/admin`)
+![Admin Dashboard](./screenshots/Admin_dashboard.png)
+> **Description:** Administrative evaluation hub featuring real-time tab switching: candidate approvals, dynamic exam duration adjustment (15 to 180 minutes), server UTC timestamp trigger (`Start Contest Now`), Google Drive reference material synchronization, video grading out of 100 with feedback, and an automated top-3 podium leaderboard.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technology |
+|---|---|
+| **Framework** | Next.js (App Router, Turbopack) |
+| **Language** | TypeScript |
+| **Styling** | Tailwind CSS with PostCSS |
+| **Backend & Database** | Supabase (PostgreSQL with Row Level Security) |
+| **Icons** | Lucide React |
+| **Deployment Target** | Vercel Serverless Edge Platform |
+
+---
+
+## 📂 System Workflow & Routes
+
+```text
+Visitor ───► [/] Landing Portal (Official COMSATS Branding)
+               │
+               ├──► [/register] Student Registration (Creates pending verification record)
+               │
+               ├──► [/login] Approved Candidate Portal
+               │          └──► [/contest] Live Examination Chamber (Dynamic Timer & Drive Link)
+               │
+               └──► [/admin] Evaluator Gatekeeper (Password: Dr_404.)
+                          ├── Student Approvals (Unique Registration IDs)
+                          ├── Test Setup & Server Timestamp Timer
+                          ├── Video Submission Review & Marking (0 - 100)
+                          └── Top-3 Automated Podium Leaderboard
