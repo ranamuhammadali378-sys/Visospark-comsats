@@ -31,13 +31,11 @@ interface Submission {
 }
 
 export default function AdminDashboardPage() {
-  // --- Admin Authentication State ---
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [authError, setAuthError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Check saved session on mount
   useEffect(() => {
     const authSession = sessionStorage.getItem('visospark_admin_auth');
     if (authSession === 'true') {
@@ -62,7 +60,6 @@ export default function AdminDashboardPage() {
     setAdminPasswordInput('');
   };
 
-  // --- Dashboard Data States ---
   const [activeTab, setActiveTab] = useState<'approvals' | 'testConfig' | 'submissions' | 'leaderboard'>('approvals');
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -162,7 +159,7 @@ export default function AdminDashboardPage() {
         .eq('id', 1);
 
       if (error) throw error;
-      setConfigMessage('Test configuration saved!');
+      setConfigMessage('Test configuration saved successfully!');
     } catch (err) {
       setConfigMessage(err instanceof Error ? err.message : 'Failed to save settings');
     } finally {
@@ -220,7 +217,6 @@ export default function AdminDashboardPage() {
     .filter((s) => s.score !== null)
     .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
 
-  // --- Agar Sir Authenticated Nahi Hain To Password Login Card Dikhayein ---
   if (!isAdminAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 relative overflow-hidden">
@@ -245,7 +241,7 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          <form onSubmit={handleAdminLogin} className="space-y-4">
+          <form onSubmit={handleAdminLogin} autoComplete="off" className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
                 Admin Security Password
@@ -257,6 +253,8 @@ export default function AdminDashboardPage() {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
+                  autoComplete="new-password"
+                  name="admin_secret_key_field"
                   placeholder="Enter admin password..."
                   value={adminPasswordInput}
                   onChange={(e) => setAdminPasswordInput(e.target.value)}
@@ -284,7 +282,7 @@ export default function AdminDashboardPage() {
 
           <div className="mt-6 pt-4 border-t border-slate-800 text-center">
             <Link href="/" className="text-xs text-slate-400 hover:text-white transition-colors">
-              ← Wapis Homepage Par Jayein[cite: 17]
+              ← Wapis Homepage Par Jayein
             </Link>
           </div>
         </div>
@@ -292,10 +290,8 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // --- Sahi Password Enter Hone Ke Baad Main Portal Open Hoga ---
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Header */}
       <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs sm:text-sm shrink-0">
@@ -325,7 +321,6 @@ export default function AdminDashboardPage() {
         </div>
       </header>
 
-      {/* Tabs */}
       <div className="border-b border-slate-800 bg-slate-900/40 px-4 sm:px-6 py-2 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 min-w-max">
           <button
@@ -347,7 +342,7 @@ export default function AdminDashboardPage() {
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
-            <Settings className="w-4 h-4" /> Test Setup & Dynamic Timer[cite: 21]
+            <Settings className="w-4 h-4" /> Test Setup & Dynamic Timer
           </button>
 
           <button
@@ -374,15 +369,14 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Main View */}
       <main className="flex-1 p-3 sm:p-6 max-w-7xl w-full mx-auto">
         {activeTab === 'approvals' && (
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl">
             <h2 className="text-base sm:text-lg font-bold text-white">Student Registration Approvals</h2>
-            <p className="text-xs text-slate-400 mt-0.5 mb-4">Registration numbers are unique identifiers[cite: 20].</p>
+            <p className="text-xs text-slate-400 mt-0.5 mb-4">Registration numbers are unique identifiers.</p>
 
             {students.length === 0 ? (
-              <div className="text-center py-12 text-slate-500 text-xs sm:text-sm">No registered students yet.[cite: 20]</div>
+              <div className="text-center py-12 text-slate-500 text-xs sm:text-sm">No registered students yet.</div>
             ) : (
               <div className="overflow-x-auto -mx-4 sm:mx-0">
                 <table className="w-full text-left text-xs min-w-[600px]">
@@ -451,8 +445,8 @@ export default function AdminDashboardPage() {
 
         {activeTab === 'testConfig' && (
           <div className="max-w-2xl bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl">
-            <h2 className="text-base sm:text-lg font-bold text-white mb-1">Test Configuration & Situational Timer Control[cite: 21]</h2>
-            <p className="text-xs text-slate-400 mb-6">Drive link aur dynamic contest duration set karein[cite: 21].</p>
+            <h2 className="text-base sm:text-lg font-bold text-white mb-1">Test Configuration & Situational Timer Control</h2>
+            <p className="text-xs text-slate-400 mb-6">Drive link aur dynamic contest duration set karein.</p>
 
             {configMessage && (
               <div className="mb-4 p-3 rounded-xl bg-blue-950/40 border border-blue-500/40 text-blue-300 text-xs">
@@ -462,7 +456,7 @@ export default function AdminDashboardPage() {
 
             <form onSubmit={handleSaveConfig} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Test Title[cite: 21]</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Test Title</label>
                 <input
                   type="text"
                   value={testTitle}
@@ -472,7 +466,7 @@ export default function AdminDashboardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Teacher Google Drive Link (Reference Prompts / Images)[cite: 21]</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Teacher Google Drive Link (Reference Prompts / Images)</label>
                 <input
                   type="url"
                   placeholder="https://drive.google.com/drive/folders/..."
@@ -484,7 +478,7 @@ export default function AdminDashboardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Scenario / Problem Statement[cite: 21]</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Scenario / Problem Statement</label>
                 <textarea
                   rows={3}
                   value={scenario}
@@ -495,7 +489,7 @@ export default function AdminDashboardPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Duration in Minutes (Adjust Dynamically)[cite: 21]</label>
+                  <label className="block text-xs font-semibold text-slate-400 mb-1">Duration in Minutes (Adjust Dynamically)</label>
                   <input
                     type="number"
                     min="1"
@@ -514,7 +508,7 @@ export default function AdminDashboardPage() {
                       onChange={(e) => setIsActive(e.target.checked)}
                       className="w-4 h-4 accent-blue-600 rounded"
                     />
-                    <span className="text-xs font-semibold text-slate-300">Enable Test Visibility[cite: 21]</span>
+                    <span className="text-xs font-semibold text-slate-300">Enable Test Visibility</span>
                   </label>
                 </div>
               </div>
@@ -525,7 +519,7 @@ export default function AdminDashboardPage() {
                   disabled={configSaving}
                   className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5"
                 >
-                  <Save className="w-4 h-4" /> Save Settings Only[cite: 21]
+                  <Save className="w-4 h-4" /> Save Settings Only
                 </button>
                 <button
                   type="button"
@@ -533,7 +527,7 @@ export default function AdminDashboardPage() {
                   disabled={configSaving}
                   className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-1.5"
                 >
-                  <Play className="w-4 h-4 fill-white" /> Start Contest Now ({durationMinutes} Min)[cite: 21]
+                  <Play className="w-4 h-4 fill-white" /> Start Contest Now ({durationMinutes} Min)
                 </button>
               </div>
 
