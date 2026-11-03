@@ -1,358 +1,377 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
-import { Clock, ExternalLink, Send, AlertTriangle, CheckCircle2, Lock, ShieldCheck } from 'lucide-react';
+import { 
+  Trophy, Clock, Calendar, MapPin, CheckCircle2, AlertCircle, 
+  ExternalLink, Send, Video, LogOut, ArrowRight, ShieldCheck 
+} from 'lucide-react';
 
-interface StudentUser {
-  id: string;
-  full_name: string;
-  reg_no: string;
-  status: string;
-}
+export default function ContestDashboardPage() {
+  const [studentName, setStudentName] = useState('');
+  const [studentReg, setStudentReg] = useState('');
+  const [studentStatus, setStudentStatus] = useState<string>('approved');
+  const [loading, setLoading] = useState(true);
 
-export default function ContestRoomPage() {
-  const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<StudentUser | null>(null);
-
-  // Contest config from database
-  const [testActive, setTestActive] = useState(false);
+  // Contest Info from Admin
+  const [contestTitle, setContestTitle] = useState('Visospark AI Prompt Contest');
+  const [eventDate, setEventDate] = useState('November 2026');
+  const [eventVenue, setEventVenue] = useState('Computer Science Lab, CUI Vehari');
   const [scenario, setScenario] = useState('');
   const [teacherDriveLink, setTeacherDriveLink] = useState('');
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [isTimeUp, setIsTimeUp] = useState(false);
+  const [durationMinutes, setDurationMinutes] = useState(15);
+  const [isActive, setIsActive] = useState(false);
+  const [startTime, setStartTime] = useState<string | null>(null);
+  const [timeLeftSeconds, setTimeLeftSeconds] = useState<number | null>(null);
 
-  // Submission form states
-  const [title, setTitle] = useState('');
-  const [prompt, setPrompt] = useState('');
+  // Submission Form State
+  const [submissionTitle, setSubmissionTitle] = useState('');
+  const [usedPrompt, setUsedPrompt] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [submittedSuccess, setSubmittedSuccess] = useState(false);
-  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
-  // 1. Session check
   useEffect(() => {
-    const rawUser = localStorage.getItem('visospark_user');
-    if (!rawUser) {
-      router.push('/login');
-      return;
-    }
-    const parsedUser: StudentUser = JSON.parse(rawUser);
-    if (parsedUser.status !== 'approved') {
-      router.push('/login');
-      return;
-    }
-    setCurrentUser(parsedUser);
+    // 1. Get Logged in student info from session
+    const reg = sessionStorage.getItem('visospark_student_reg') || 'FA24-BCS-011';
+    const name = sessionStorage.getItem('visospark_student_name') || 'Student';
+    setStudentReg(reg);
+    setStudentName(name);
 
-    const checkExistingSubmission = async () => {
-      const { data } = await supabase
-        .from('submissions')
-        .select('id')
-        .eq('student_id', parsedUser.id)
-        .maybeSingle();
+    // 2. Fetch fresh status & contest config from Supabase
+    const fetchPortalData = async () => {
+      try {
+        // Fetch student status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('status, full_name')
+          .eq('reg_no', reg)
+          .maybeSingle();
 
-      if (data) {
-        setAlreadySubmitted(true);
-      }
-    };
-
-    checkExistingSubmission();
-  }, [router]);
-
-  // 2. Fetch test configuration & dynamic timestamp calculation
-  useEffect(() => {
-    const fetchConfig = async () => {
-      const { data, error } = await supabase
-        .from('test_config')
-        .select('*')
-        .limit(1)
-        .maybeSingle();
-
-      if (error || !data) return;
-
-      setScenario(data.scenario || '');
-      setTeacherDriveLink(data.teacher_drive_link || '');
-      setTestActive(data.is_active || false);
-
-      if (data.is_active && data.start_time && data.duration_minutes) {
-        const startMillis = new Date(data.start_time).getTime();
-        const durationMillis = Number(data.duration_minutes) * 60 * 1000;
-        const deadlineMillis = startMillis + durationMillis;
-
-        const now = Date.now();
-        const diffSeconds = Math.max(0, Math.floor((deadlineMillis - now) / 1000));
-
-        setTimeLeft(diffSeconds);
-        if (diffSeconds <= 0) {
-          setIsTimeUp(true);
+        if (profile) {
+          setStudentStatus(profile.status);
+          if (profile.full_name) setStudentName(profile.full_name);
         }
+
+        // Fetch Contest schedule and status
+        const { data: config } = await supabase
+          .from('test_config')
+          .select('*')
+          .limit(1)
+          .maybeSingle();
+
+        if (config) {
+          setContestTitle(config.title || 'Visospark AI Prompt Contest');
+          setEventDate(config.event_date || 'Announced by Dr. Waseem Akram');
+          setEventVenue(config.event_venue || 'Lab 1, Department of CS, CUI Vehari');
+          setScenario(config.scenario || 'Prompt details will appear when contest is initiated by Dr. Waseem Akram.');
+          setTeacherDriveLink(config.teacher_drive_link || '');
+          setDurationMinutes(config.duration_minutes || 15);
+          setIsActive(config.is_active || false);
+          setStartTime(config.start_time || null);
+        }
+      } catch (err) {
+        console.error('Fetch error:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchConfig();
-    const pollInterval = setInterval(fetchConfig, 10000);
-    return () => clearInterval(pollInterval);
+    fetchPortalData();
+
+    // Setup periodic polling for real-time status update
+    const interval = setInterval(fetchPortalData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  // 3. Countdown timer
+  // Timer Countdown Calculation
   useEffect(() => {
-    if (timeLeft === null || !testActive) return;
-
-    if (timeLeft <= 0) {
-      setIsTimeUp(true);
+    if (!isActive || !startTime) {
+      setTimeLeftSeconds(null);
       return;
     }
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev === null || prev <= 1) {
-          clearInterval(timer);
-          setIsTimeUp(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const calculateRemaining = () => {
+      const startMs = new Date(startTime).getTime();
+      const endMs = startMs + durationMinutes * 60 * 1000;
+      const nowMs = Date.now();
+      const diffSec = Math.floor((endMs - nowMs) / 1000);
 
+      if (diffSec <= 0) {
+        setTimeLeftSeconds(0);
+      } else {
+        setTimeLeftSeconds(diffSec);
+      }
+    };
+
+    calculateRemaining();
+    const timer = setInterval(calculateRemaining, 1000);
     return () => clearInterval(timer);
-  }, [timeLeft, testActive]);
+  }, [isActive, startTime, durationMinutes]);
 
-  // 4. Submission Handler
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent | null, isAuto = false) => {
-      if (e) e.preventDefault();
-      if (!currentUser) return;
-
-      if (isTimeUp && !isAuto) {
-        alert('Time is up! Submissions are closed.');
-        return;
-      }
-
-      if (!videoUrl.trim()) {
-        setErrorMessage('Please provide your video Google Drive submission link.');
-        return;
-      }
-
-      setSubmitting(true);
-      setErrorMessage('');
-
-      try {
-        const { error } = await supabase.from('submissions').insert([
-          {
-            student_id: currentUser.id,
-            student_name: currentUser.full_name,
-            reg_no: currentUser.reg_no,
-            title: title.trim() || 'AI Prompt Engineering Submission',
-            used_prompt: prompt.trim() || 'No prompt specified',
-            video_url: videoUrl.trim(),
-          },
-        ]);
-
-        if (error) throw error;
-        setSubmittedSuccess(true);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Submission failed';
-        setErrorMessage(msg);
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [currentUser, isTimeUp, title, prompt, videoUrl]
-  );
-
-  // Auto-submit on time expiry
-  useEffect(() => {
-    if (isTimeUp && !submittedSuccess && !alreadySubmitted && (videoUrl.trim() || prompt.trim())) {
-      handleSubmit(null, true);
-    }
-  }, [isTimeUp, submittedSuccess, alreadySubmitted, videoUrl, prompt, handleSubmit]);
-
-  const formatTime = (seconds: number) => {
+  const formatTimer = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!currentUser) {
+  const handleLogout = () => {
+    sessionStorage.clear();
+    window.location.href = '/login';
+  };
+
+  const handleSubmitProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError('');
+    setSubmitting(true);
+
+    try {
+      const studentId = sessionStorage.getItem('visospark_student_id') || crypto.randomUUID();
+
+      const { error } = await supabase.from('submissions').insert([
+        {
+          student_id: studentId,
+          student_name: studentName,
+          reg_no: studentReg,
+          title: submissionTitle.trim(),
+          used_prompt: usedPrompt.trim(),
+          video_url: videoUrl.trim(),
+          submitted_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (error) throw error;
+      setSubmitSuccess(true);
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to submit project');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white text-xs">
-        Verifying student session...
+      <div className="min-h-screen bg-[#05070d] text-white flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-2 border-sky-400 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs text-slate-400 tracking-wider">Loading Visospark Student Portal...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Contest Top Bar */}
-      <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-white text-base">Visospark Live Contest</span>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] bg-blue-500/10 text-sky-400 border border-blue-500/30">
-              Vehari Campus
-            </span>
+    <div className="min-h-screen bg-[#05070d] text-slate-100 flex flex-col justify-between selection:bg-sky-500/30">
+      
+      {/* Top Header */}
+      <header className="border-b border-white/[0.08] bg-[#05070d]/80 backdrop-blur-xl px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full border border-sky-400/30 p-1 flex items-center justify-center bg-white/[0.03]">
+            <Image
+              src="/comsats-logo.png"
+              alt="COMSATS Logo"
+              width={36}
+              height={36}
+              className="object-contain rounded-full"
+            />
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Student: <strong className="text-white">{currentUser.full_name}</strong> • Unique ID:{' '}
-            <span className="font-mono text-sky-400 font-bold bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
-              {currentUser.reg_no}
-            </span>
-          </p>
+          <div>
+            <h1 className="text-xs sm:text-sm font-bold text-white tracking-wide">Visospark Candidate Portal</h1>
+            <p className="text-[11px] text-sky-400 font-light">COMSATS University Islamabad, Vehari Campus</p>
+          </div>
         </div>
 
-        {/* Dynamic Countdown */}
-        <div className="flex items-center gap-4">
-          {testActive && timeLeft !== null && (
-            <div
-              className={`px-4 py-2 rounded-xl border flex items-center gap-2 font-mono text-sm font-bold shadow-lg ${
-                isTimeUp
-                  ? 'bg-red-950/60 border-red-500/50 text-red-400'
-                  : timeLeft < 180
-                  ? 'bg-amber-950/60 border-amber-500/50 text-amber-300 animate-pulse'
-                  : 'bg-slate-900 border-slate-700 text-emerald-400'
-              }`}
-            >
-              <Clock className="w-4 h-4" />
-              <span>{isTimeUp ? '00:00 - TIME EXPIRED' : `Time Remaining: ${formatTime(timeLeft)}`}</span>
-            </div>
-          )}
-        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 text-xs border border-red-500/30 transition-colors"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Sign Out</span>
+        </button>
       </header>
 
-      {/* Main Contest Layout */}
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6 space-y-6">
-        {!testActive && (
-          <div className="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 text-center">
-            <Clock className="w-12 h-12 text-blue-400 mx-auto mb-3 animate-spin" />
-            <h2 className="text-lg font-bold text-white">Contest Has Not Started Yet</h2>
-            <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto">
-              Please wait. As soon as <strong>Dr. Waseem Akram</strong> triggers the test start, your challenge details and reference drive link will activate.
-            </p>
+      {/* Main Container */}
+      <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+        
+        {/* Student Profile & Approval Card */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+          <div className="space-y-1">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-sky-400">Candidate Information</span>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">{studentName}</h2>
+            <div className="flex items-center gap-2 pt-0.5">
+              <span className="font-mono text-xs bg-sky-950/80 border border-sky-500/40 text-sky-300 px-2.5 py-0.5 rounded font-bold">
+                {studentReg}
+              </span>
+              <span className="text-xs text-slate-400">• BS Software Engineering / CS</span>
+            </div>
           </div>
-        )}
 
-        {(alreadySubmitted || submittedSuccess) && (
-          <div className="p-8 rounded-2xl bg-emerald-950/30 border border-emerald-500/40 text-center">
-            <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto mb-3" />
-            <h2 className="text-xl font-bold text-white">Submission Successfully Received!</h2>
-            <p className="text-xs text-slate-300 mt-2 max-w-lg mx-auto">
-              Your prompt and video link have been securely logged under Registration No:{' '}
-              <strong className="font-mono text-sky-300">{currentUser.reg_no}</strong>. Dr. Waseem Akram will evaluate your output on the admin dashboard.
-            </p>
+          <div className="flex items-center gap-2">
+            {studentStatus === 'approved' ? (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Account Approved by Dr. Waseem Akram</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+                <Clock className="w-4 h-4 text-amber-400" />
+                <span>Approval Under Review</span>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
-        {testActive && !alreadySubmitted && !submittedSuccess && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left Card: Problem Statement & Teacher Drive Link */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-sky-400 mb-2">Test Challenge & Scenario</h3>
-                <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 whitespace-pre-wrap">
-                  {scenario || 'Review the reference visual prompts inside the Google Drive folder to construct your AI video prompt.'}
-                </p>
+        {/* Contest Details & Schedule Box (Admin Controlled) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 rounded-xl bg-white/[0.025] border border-white/[0.08] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Contest Date & Time</p>
+              <p className="text-xs sm:text-sm font-semibold text-white mt-0.5">{eventDate}</p>
+            </div>
+          </div>
 
-                <div className="mt-6">
-                  <h4 className="text-xs font-semibold text-slate-300 mb-1.5">Instructor Reference Drive Material:</h4>
-                  {teacherDriveLink ? (
-                    <a
-                      href={teacherDriveLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md shadow-blue-600/30 transition-all"
-                    >
-                      <ExternalLink className="w-4 h-4" /> Open Reference Drive Folder
-                    </a>
-                  ) : (
-                    <div className="p-3 text-xs text-amber-300 bg-amber-950/30 rounded-xl border border-amber-500/30">
-                      Drive link will be made available shortly by Dr. Waseem Akram.
-                    </div>
-                  )}
-                </div>
-              </div>
+          <div className="p-4 rounded-xl bg-white/[0.025] border border-white/[0.08] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Event Venue / Location</p>
+              <p className="text-xs sm:text-sm font-semibold text-white mt-0.5">{eventVenue}</p>
+            </div>
+          </div>
 
-              <div className="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-500 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Form locks automatically the instant timer hits 00:00.
-              </div>
+          <div className="p-4 rounded-xl bg-white/[0.025] border border-white/[0.08] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Supervised by</p>
+              <p className="text-xs sm:text-sm font-semibold text-white mt-0.5">Dr. Waseem Akram</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Contest Room & Challenge Section */}
+        <div className="p-6 rounded-2xl bg-gradient-to-b from-white/[0.04] to-transparent border border-white/[0.08] space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
+            <div>
+              <span className="text-[10px] uppercase tracking-widest text-sky-400 font-bold">Challenge Brief</span>
+              <h3 className="text-lg font-bold text-white mt-0.5">{contestTitle}</h3>
             </div>
 
-            {/* Right Card: Submission Form */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-sky-400 mb-4">Your Video Submission</h3>
+            {/* Live Countdown Display */}
+            {isActive && timeLeftSeconds !== null && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-300 font-mono text-sm font-bold shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+                <Clock className="w-4 h-4 animate-pulse text-rose-400" />
+                <span>Timer Left: {formatTimer(timeLeftSeconds)}</span>
+              </div>
+            )}
+          </div>
 
-              {errorMessage && (
-                <div className="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
+          {/* Scenario / Instructions */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Problem Statement / Scenario:</p>
+            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
+              {scenario}
+            </div>
+          </div>
 
-              {isTimeUp ? (
-                <div className="p-6 rounded-xl bg-red-950/30 border border-red-500/40 text-center">
-                  <Lock className="w-10 h-10 text-red-400 mx-auto mb-2" />
-                  <h4 className="text-sm font-bold text-red-300">Time Limit Reached</h4>
-                  <p className="text-xs text-slate-400 mt-1">Timer has elapsed. Submissions are strictly closed.</p>
+          {teacherDriveLink && (
+            <div>
+              <a
+                href={teacherDriveLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-500/40 text-sky-300 text-xs font-semibold transition-all"
+              >
+                <ExternalLink className="w-4 h-4" /> Open Teacher Reference Materials (Google Drive)
+              </a>
+            </div>
+          )}
+
+          {/* Final Submission Form */}
+          {studentStatus === 'approved' && (
+            <div className="pt-4 border-t border-white/[0.06] space-y-4">
+              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                <Send className="w-4 h-4 text-sky-400" /> Submit Your AI Video & Prompt
+              </h4>
+
+              {submitSuccess ? (
+                <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <span>Your project has been submitted successfully! Dr. Waseem Akram will evaluate it soon.</span>
                 </div>
               ) : (
-                <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
+                <form onSubmit={handleSubmitProject} className="space-y-3.5">
+                  {submitError && (
+                    <div className="p-3 rounded-lg bg-red-950/40 border border-red-500/40 text-red-300 text-xs">
+                      {submitError}
+                    </div>
+                  )}
+
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Submission Title</label>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1">Project / Video Title</label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. AI Prompt Narrative #1"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                      placeholder="e.g. Cinematic AI Agriculture Drone"
+                      value={submissionTitle}
+                      onChange={(e) => setSubmissionTitle(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Exact AI Prompt Used (Engineering Details)
-                    </label>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1">AI Prompt Used</label>
                     <textarea
-                      rows={4}
                       required
-                      placeholder="Paste the prompt you formulated to generate the video..."
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono focus:outline-none focus:border-blue-500"
+                      rows={3}
+                      placeholder="Paste your exact prompt engineered for video generation..."
+                      value={usedPrompt}
+                      onChange={(e) => setUsedPrompt(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white font-mono focus:outline-none focus:border-sky-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Your Video Link (Google Drive / Cloud Share)
-                    </label>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1">Generated Video Link (Google Drive / Public URL)</label>
                     <input
                       type="url"
                       required
-                      placeholder="https://drive.google.com/file/d/your-video-id/view"
+                      placeholder="https://drive.google.com/file/d/..."
                       value={videoUrl}
                       onChange={(e) => setVideoUrl(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-sky-500"
                     />
-                    <p className="text-[11px] text-slate-500 mt-1">
-                      Ensure link access is set to <strong>"Anyone with the link can view"</strong>.
-                    </p>
                   </div>
 
                   <button
                     type="submit"
-                    disabled={submitting || isTimeUp}
-                    className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white font-semibold text-xs shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 mt-2 transition-all"
+                    disabled={submitting}
+                    className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all"
                   >
-                    <Send className="w-4 h-4" /> {submitting ? 'Submitting to Portal...' : 'Submit Video Output'}
+                    <Send className="w-4 h-4" />
+                    {submitting ? 'Submitting Project...' : 'Submit Final Project to Evaluator'}
                   </button>
                 </form>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-white/[0.05] bg-[#05070d]/80 py-4 px-6 text-center">
+        <p className="text-[11px] text-slate-400 font-light">
+          Visospark AI Contest Portal • Evaluator: <strong className="text-slate-200">Dr. Waseem Akram</strong> • Mentor: <strong className="text-slate-200">Sir MS Abdullah</strong>
+        </p>
+      </footer>
     </div>
   );
 }
