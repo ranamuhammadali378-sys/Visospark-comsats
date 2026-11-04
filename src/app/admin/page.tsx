@@ -39,7 +39,7 @@ export default function AdminDashboardPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const authSession = sessionStorage.getItem('visospark_admin_auth');
+    const authSession = sessionStorage.getItem('Vspark_admin_auth');
     if (authSession === 'true') {
       setIsAdminAuthenticated(true);
     }
@@ -49,7 +49,7 @@ export default function AdminDashboardPage() {
     e.preventDefault();
     if (adminPasswordInput === 'Dr_404.') {
       setIsAdminAuthenticated(true);
-      sessionStorage.setItem('visospark_admin_auth', 'true');
+      sessionStorage.setItem('Vspark_admin_auth', 'true');
       setAuthError('');
     } else {
       setAuthError('Incorrect Password. Please enter valid Dr. Waseem Akram key.');
@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleAdminLogout = () => {
-    sessionStorage.removeItem('visospark_admin_auth');
+    sessionStorage.removeItem('Vspark_admin_auth');
     setIsAdminAuthenticated(false);
     setAdminPasswordInput('');
   };
@@ -339,7 +339,7 @@ export default function AdminDashboardPage() {
             CUI
           </div>
           <div>
-            <h1 className="text-sm sm:text-base font-bold text-white leading-tight">Visospark Admin Evaluation</h1>
+            <h1 className="text-sm sm:text-base font-bold text-white leading-tight">Vspark Admin Evaluation</h1>
             <p className="text-[11px] text-sky-400 truncate max-w-[200px] sm:max-w-none">Dr. Waseem Akram • Vehari Campus</p>
           </div>
         </div>
@@ -575,7 +575,7 @@ export default function AdminDashboardPage() {
                   type="text"
                   value={testTitle}
                   onChange={(e) => setTestTitle(e.target.value)}
-                  placeholder="e.g. Visospark AI Video Prompt Challenge 2026"
+                  placeholder="e.g. Vspark AI Video Prompt Challenge 2026"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
@@ -794,7 +794,7 @@ export default function AdminDashboardPage() {
 
         {activeTab === 'leaderboard' && (
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl">
-            <h2 className="text-base sm:text-lg font-bold text-white mb-1">Visospark Top Performers Leaderboard</h2>
+            <h2 className="text-base sm:text-lg font-bold text-white mb-1">Vspark Top Performers Leaderboard</h2>
             <p className="text-xs text-slate-400 mb-6">Dr. Waseem Akram ke marks se live ranking aur winner contact details.</p>
 
             {rankedSubmissions.length === 0 ? (

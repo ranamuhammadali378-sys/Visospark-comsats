@@ -66,16 +66,16 @@ export default function HomePage() {
         {/* Professional Contest Badge */}
         <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-sky-500/[0.08] border border-sky-400/30 text-sky-200 text-xs font-normal tracking-widest uppercase shadow-[0_0_20px_rgba(56,189,248,0.12)] backdrop-blur-md">
           <Cpu className="w-3.5 h-3.5 text-sky-400" />
-          <span>Visospark Inter-Campus AI Evaluation 2026</span>
+          <span>Vspark Inter-Campus AI Evaluation 2026</span>
           <Sparkles className="w-3.5 h-3.5 text-sky-300" />
         </div>
 
         {/* Refined Unified Executive Headline (No harsh pink/yellow tones) */}
         <div className="space-y-2 select-none">
           <h1 className="text-4xl sm:text-6xl lg:text-7xl tracking-tight leading-tight">
-            {/* Visospark in Deep Royal Ice-to-Azure Professional Blue */}
+            {/* Vspark in Deep Royal Ice-to-Azure Professional Blue */}
             <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-sky-100 via-sky-300 to-blue-500 drop-shadow-[0_2px_15px_rgba(56,189,248,0.35)]">
-              Visospark
+              Vspark
             </span>{' '}
             {/* AI Prompt in Crisp Platinum White */}
             <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-300 drop-shadow-[0_2px_15px_rgba(255,255,255,0.25)]">

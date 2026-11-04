@@ -1,7 +1,7 @@
-# ⚡ Visospark AI Prompt Engineering Contest Portal
+# ⚡ Vspark AI Prompt Engineering Contest Portal
 ### COMSATS University Islamabad • Vehari Campus
 
-An institutional, real-time web portal engineered for the **Visospark AI Video Prompt Engineering Competition** hosted at **COMSATS University Islamabad (Vehari Campus)**.
+An institutional, real-time web portal engineered for the **Vspark AI Video Prompt Engineering Competition** hosted at **COMSATS University Islamabad (Vehari Campus)**.
 
 The system facilitates secured student registration with unique identifier verification, dynamic server-synchronized test windows, live submission tracking, instructor resource dispatch, and an automated grading and leaderboard pipeline.
 

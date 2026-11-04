@@ -16,7 +16,7 @@ export default function ContestDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   // Contest Info from Admin
-  const [contestTitle, setContestTitle] = useState('Visospark AI Prompt Contest');
+  const [contestTitle, setContestTitle] = useState('Vspark AI Prompt Contest');
   const [eventDate, setEventDate] = useState('November 2026');
   const [eventVenue, setEventVenue] = useState('Computer Science Lab, CUI Vehari');
   const [scenario, setScenario] = useState('');
@@ -36,8 +36,8 @@ export default function ContestDashboardPage() {
 
   useEffect(() => {
     // 1. Get Logged in student info from session
-    const reg = sessionStorage.getItem('visospark_student_reg') || 'FA24-BCS-011';
-    const name = sessionStorage.getItem('visospark_student_name') || 'Student';
+    const reg = sessionStorage.getItem('Vspark_student_reg') || 'FA24-BCS-011';
+    const name = sessionStorage.getItem('Vspark_student_name') || 'Student';
     setStudentReg(reg);
     setStudentName(name);
 
@@ -64,7 +64,7 @@ export default function ContestDashboardPage() {
           .maybeSingle();
 
         if (config) {
-          setContestTitle(config.title || 'Visospark AI Prompt Contest');
+          setContestTitle(config.title || 'Vspark AI Prompt Contest');
           setEventDate(config.event_date || 'Announced by Dr. Waseem Akram');
           setEventVenue(config.event_venue || 'Lab 1, Department of CS, CUI Vehari');
           setScenario(config.scenario || 'Prompt details will appear when contest is initiated by Dr. Waseem Akram.');
@@ -129,7 +129,7 @@ export default function ContestDashboardPage() {
     setSubmitting(true);
 
     try {
-      const studentId = sessionStorage.getItem('visospark_student_id') || crypto.randomUUID();
+      const studentId = sessionStorage.getItem('Vspark_student_id') || crypto.randomUUID();
 
       const { error } = await supabase.from('submissions').insert([
         {
@@ -157,7 +157,7 @@ export default function ContestDashboardPage() {
       <div className="min-h-screen bg-[#05070d] text-white flex items-center justify-center">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-2 border-sky-400 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-slate-400 tracking-wider">Loading Visospark Student Portal...</p>
+          <p className="text-xs text-slate-400 tracking-wider">Loading Vspark Student Portal...</p>
         </div>
       </div>
     );
@@ -179,7 +179,7 @@ export default function ContestDashboardPage() {
             />
           </div>
           <div>
-            <h1 className="text-xs sm:text-sm font-bold text-white tracking-wide">Visospark Candidate Portal</h1>
+            <h1 className="text-xs sm:text-sm font-bold text-white tracking-wide">Vspark Candidate Portal</h1>
             <p className="text-[11px] text-sky-400 font-light">COMSATS University Islamabad, Vehari Campus</p>
           </div>
         </div>
@@ -369,7 +369,7 @@ export default function ContestDashboardPage() {
       {/* Footer */}
       <footer className="border-t border-white/[0.05] bg-[#05070d]/80 py-4 px-6 text-center">
         <p className="text-[11px] text-slate-400 font-light">
-          Visospark AI Contest Portal • Evaluator: <strong className="text-slate-200">Dr. Waseem Akram</strong> • Mentor: <strong className="text-slate-200">Sir MS Abdullah</strong>
+          Vspark AI Contest Portal • Evaluator: <strong className="text-slate-200">Dr. Waseem Akram</strong> • Mentor: <strong className="text-slate-200">Sir MS Abdullah</strong>
         </p>
       </footer>
     </div>

@@ -59,9 +59,9 @@ export default function LoginPage() {
       }
 
       // 4. Save Session & Hard Navigate to Contest Room
-      sessionStorage.setItem('visospark_student_id', student.id);
-      sessionStorage.setItem('visospark_student_name', student.full_name);
-      sessionStorage.setItem('visospark_student_reg', student.reg_no);
+      sessionStorage.setItem('Vspark_student_id', student.id);
+      sessionStorage.setItem('Vspark_student_name', student.full_name);
+      sessionStorage.setItem('Vspark_student_reg', student.reg_no);
 
       // Force full window navigation to avoid Next.js router silent freeze
       window.location.href = '/contest';
@@ -97,7 +97,7 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">Student Sign In</h1>
-          <p className="text-xs text-sky-400 mt-1">Visospark • COMSATS Vehari Campus</p>
+          <p className="text-xs text-sky-400 mt-1">Vspark • COMSATS Vehari Campus</p>
         </div>
 
         {errorMsg && (

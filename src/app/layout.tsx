@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Visospark AI Contest | COMSATS Vehari',
+  title: 'Vspark AI Contest | COMSATS Vehari',
   description: 'AI Video Prompt Engineering Contest Portal for COMSATS University Islamabad, Vehari Campus',
 };
 

@@ -115,7 +115,7 @@ export default function RegisterPage() {
             />
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight">Student Registration</h1>
-          <p className="text-xs text-sky-400 mt-1">Visospark • COMSATS Vehari Campus</p>
+          <p className="text-xs text-sky-400 mt-1">Vspark • COMSATS Vehari Campus</p>
         </div>
 
         {errorMsg && (
